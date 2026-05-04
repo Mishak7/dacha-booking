@@ -116,16 +116,7 @@ function renderFloor() {
       <span class="blanket"></span>
       <span class="pillow"></span>
     `;
-    button.addEventListener("click", (event) => {
-      if (bed.note && state.tooltipBedId !== bed.id) {
-        event.preventDefault();
-        showBedTooltip(button);
-        return;
-      }
-
-      if (state.bookings.has(bed.id)) return;
-      openBookingDialog(bed, floor);
-    });
+    button.addEventListener("click", (event) => activateBed(button, event));
     floorMap.append(button);
   }
 }
@@ -176,6 +167,22 @@ function openBookingDialog(bed, floor) {
   selectedBedTitle.textContent = `Забронировать ${bed.label}`;
   dialog.showModal();
   form.elements.name.focus();
+}
+
+function activateBed(button, event) {
+  const bedId = button.dataset.bed;
+  const meta = bedById(bedId);
+  if (!meta) return;
+
+  if (button.dataset.note && state.tooltipBedId !== bedId) {
+    event.preventDefault();
+    showBedTooltip(button);
+    return;
+  }
+
+  if (state.bookings.has(bedId)) return;
+  hideBedTooltip();
+  openBookingDialog(meta.bed, meta.floor);
 }
 
 async function submitBooking(event) {
@@ -306,6 +313,10 @@ document.addEventListener("click", (event) => {
   if (event.target.closest(".bed[data-note]") || event.target.closest(".bed-tooltip")) return;
   hideBedTooltip();
 });
+document.addEventListener("touchstart", (event) => {
+  if (event.target.closest(".bed[data-note]") || event.target.closest(".bed-tooltip")) return;
+  hideBedTooltip();
+});
 bookingList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-checkout]");
   if (!button) return;
@@ -341,6 +352,16 @@ floorMap.addEventListener("focusin", (event) => {
   showBedTooltip(bed);
 });
 floorMap.addEventListener("focusout", hideBedTooltip);
+floorMap.addEventListener(
+  "touchstart",
+  (event) => {
+    const bed = event.target.closest(".bed");
+    if (!bed || !floorMap.contains(bed)) return;
+    event.preventDefault();
+    activateBed(bed, event);
+  },
+  { passive: false }
+);
 form.addEventListener("submit", submitBooking);
 
 loadBookings().catch(() => {
