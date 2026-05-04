@@ -3,7 +3,6 @@ const state = {
   floorId: "house-1",
   bookings: new Map(),
   selectedBed: null,
-  tooltipBedId: null,
 };
 
 const floorTabs = document.querySelector("#floorTabs");
@@ -19,6 +18,7 @@ const form = document.querySelector("#bookingForm");
 const formError = document.querySelector("#formError");
 const selectedBedTitle = document.querySelector("#selectedBedTitle");
 const selectedBedKicker = document.querySelector("#selectedBedKicker");
+const selectedBedNote = document.querySelector("#selectedBedNote");
 const toast = document.querySelector("#toast");
 const bedTooltip = document.createElement("div");
 bedTooltip.className = "bed-tooltip";
@@ -165,6 +165,8 @@ function openBookingDialog(bed, floor) {
   formError.textContent = "";
   selectedBedKicker.textContent = floor.title;
   selectedBedTitle.textContent = `Забронировать ${bed.label}`;
+  selectedBedNote.textContent = bed.note || "";
+  selectedBedNote.hidden = !bed.note;
   dialog.showModal();
   form.elements.name.focus();
 }
@@ -173,12 +175,6 @@ function activateBed(button, event) {
   const bedId = button.dataset.bed;
   const meta = bedById(bedId);
   if (!meta) return;
-
-  if (button.dataset.note && state.tooltipBedId !== bedId) {
-    event.preventDefault();
-    showBedTooltip(button);
-    return;
-  }
 
   if (state.bookings.has(bedId)) return;
   hideBedTooltip();
@@ -253,7 +249,6 @@ function showBedTooltip(target) {
   const note = target.dataset.note;
   if (!note) return;
 
-  state.tooltipBedId = target.dataset.bed;
   bedTooltip.textContent = note;
   bedTooltip.classList.add("visible");
   moveBedTooltip(target);
@@ -284,7 +279,6 @@ function moveBedTooltip(target) {
 }
 
 function hideBedTooltip() {
-  state.tooltipBedId = null;
   bedTooltip.classList.remove("visible", "below");
 }
 
@@ -352,16 +346,6 @@ floorMap.addEventListener("focusin", (event) => {
   showBedTooltip(bed);
 });
 floorMap.addEventListener("focusout", hideBedTooltip);
-floorMap.addEventListener(
-  "touchstart",
-  (event) => {
-    const bed = event.target.closest(".bed");
-    if (!bed || !floorMap.contains(bed)) return;
-    event.preventDefault();
-    activateBed(bed, event);
-  },
-  { passive: false }
-);
 form.addEventListener("submit", submitBooking);
 
 loadBookings().catch(() => {
