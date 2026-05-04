@@ -90,9 +90,9 @@ button {
 .topbar {
   position: relative;
   overflow: hidden;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   min-height: 118px;
   padding: 24px 28px;
@@ -142,7 +142,43 @@ h1 {
   font-size: 13px;
 }
 
-.stats strong {
+.stats strong,
+.countdown-grid strong {
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.countdown {
+  min-width: 300px;
+}
+
+.countdown .panel-label {
+  margin-bottom: 8px;
+}
+
+.countdown-grid {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px 16px;
+  background: #fff;
+}
+
+.countdown-grid span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.countdown-grid strong {
   color: var(--ink);
   font-size: 28px;
   line-height: 1;
@@ -693,6 +729,10 @@ h1 {
     display: grid;
   }
 
+  .topbar {
+    grid-template-columns: 1fr;
+  }
+
   .selector-zone {
     grid-template-columns: 1fr;
   }
@@ -705,6 +745,15 @@ h1 {
 
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .countdown {
+    min-width: 0;
+  }
+
+  .countdown-grid {
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 
   .map-wrap {

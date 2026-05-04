@@ -13,6 +13,10 @@ const floorSubtitle = document.querySelector("#floorSubtitle");
 const buildingLabel = document.querySelector("#buildingLabel");
 const freeCount = document.querySelector("#freeCount");
 const busyCount = document.querySelector("#busyCount");
+const countdownDays = document.querySelector("#countdownDays");
+const countdownHours = document.querySelector("#countdownHours");
+const countdownMinutes = document.querySelector("#countdownMinutes");
+const countdownSeconds = document.querySelector("#countdownSeconds");
 const dialog = document.querySelector("#bookingDialog");
 const form = document.querySelector("#bookingForm");
 const formError = document.querySelector("#formError");
@@ -25,6 +29,7 @@ bedTooltip.className = "bed-tooltip";
 document.body.append(bedTooltip);
 
 const floors = window.FLOORS;
+const countdownTarget = new Date("2026-05-16T14:00:00+03:00");
 
 function floorById(id) {
   return floors.find((floor) => floor.id === id);
@@ -157,6 +162,20 @@ function renderStats() {
   const busy = state.bookings.size;
   freeCount.textContent = total - busy;
   busyCount.textContent = busy;
+}
+
+function renderCountdown() {
+  const remaining = Math.max(0, countdownTarget.getTime() - Date.now());
+  const totalSeconds = Math.floor(remaining / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  countdownDays.textContent = String(days).padStart(2, "0");
+  countdownHours.textContent = String(hours).padStart(2, "0");
+  countdownMinutes.textContent = String(minutes).padStart(2, "0");
+  countdownSeconds.textContent = String(seconds).padStart(2, "0");
 }
 
 function openBookingDialog(bed, floor) {
@@ -347,6 +366,9 @@ floorMap.addEventListener("focusin", (event) => {
 });
 floorMap.addEventListener("focusout", hideBedTooltip);
 form.addEventListener("submit", submitBooking);
+
+renderCountdown();
+window.setInterval(renderCountdown, 1000);
 
 loadBookings().catch(() => {
   showToast("Не удалось загрузить брони. Проверьте сервер.");
