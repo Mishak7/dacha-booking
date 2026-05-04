@@ -115,10 +115,9 @@ function renderFloor() {
       <span class="mattress"></span>
       <span class="blanket"></span>
       <span class="pillow"></span>
-      <span class="bed-label">${isBusy ? escapeHtml(booking.name) : bed.label}</span>
     `;
     button.addEventListener("click", (event) => {
-      if (shouldUseTapTooltip() && bed.note && state.tooltipBedId !== bed.id) {
+      if (bed.note && state.tooltipBedId !== bed.id) {
         event.preventDefault();
         showBedTooltip(button);
         return;
@@ -282,10 +281,6 @@ function hideBedTooltip() {
   bedTooltip.classList.remove("visible", "below");
 }
 
-function shouldUseTapTooltip() {
-  return window.matchMedia("(hover: none), (pointer: coarse)").matches;
-}
-
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -308,7 +303,6 @@ document.querySelectorAll("[data-building]").forEach((button) => {
 document.querySelector("#refreshButton").addEventListener("click", loadBookings);
 document.querySelector("#closeDialog").addEventListener("click", () => dialog.close());
 document.addEventListener("click", (event) => {
-  if (!shouldUseTapTooltip()) return;
   if (event.target.closest(".bed[data-note]") || event.target.closest(".bed-tooltip")) return;
   hideBedTooltip();
 });
