@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Дачный сонный штаб</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Панель выбора">
+        <div>
+          <p class="eyebrow"></p>
+          <h1>Бронирование спальных мест</h1>
+        </div>
+        <div class="stats" aria-live="polite">
+          <span><strong id="freeCount">0</strong> свободно</span>
+          <span><strong id="busyCount">0</strong> занято</span>
+        </div>
+      </section>
+
+      <section class="selector-zone">
+        <div class="choice-panel">
+          <p class="panel-label">Где будем спать?</p>
+          <div class="segmented" role="tablist" aria-label="Выбор строения">
+            <button class="choice active" type="button" data-building="house">Дом</button>
+            <button class="choice" type="button" data-building="sauna">Баня</button>
+          </div>
+        </div>
+        <div class="choice-panel">
+          <p class="panel-label">Этаж</p>
+          <div class="floor-tabs" id="floorTabs" role="tablist" aria-label="Выбор этажа"></div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="floor-heading">
+          <div>
+            <p class="eyebrow" id="buildingLabel">Дом</p>
+            <h2 id="floorTitle">Дом, этаж 1</h2>
+            <p id="floorSubtitle"></p>
+          </div>
+          <div class="legend" aria-label="Легенда">
+            <span><i class="dot free"></i>Свободно</span>
+            <span><i class="dot busy"></i>Занято</span>
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div class="floor-map" id="floorMap" aria-label="План этажа"></div>
+        </div>
+      </section>
+
+      <section class="booking-list">
+        <div class="section-heading">
+          <h2>Уже забронировали</h2>
+          <button class="ghost-button" type="button" id="refreshButton">Обновить</button>
+        </div>
+        <div class="bookings-grid" id="bookingList"></div>
+      </section>
+    </main>
+
+    <dialog class="booking-dialog" id="bookingDialog">
+      <form class="booking-form" id="bookingForm" method="dialog">
+        <button class="icon-close" type="button" id="closeDialog" aria-label="Закрыть">×</button>
+        <p class="eyebrow" id="selectedBedKicker">Спальное место</p>
+        <h2 id="selectedBedTitle">Забронировать</h2>
+        <label>
+          Имя
+          <input name="name" type="text" autocomplete="name" required minlength="2" maxlength="80" placeholder="Например, Миша">
+        </label>
+        <label>
+          Контакт
+          <input name="contact" type="text" maxlength="120" placeholder="Телефон или Telegram">
+        </label>
+        <label>
+          Пожелание
+          <textarea name="comment" maxlength="300" rows="3" placeholder="Не будить до шашлыка"></textarea>
+        </label>
+        <p class="form-error" id="formError" role="alert"></p>
+        <button class="submit-button" type="submit">Забронировать место</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      window.FLOORS = {{ floors | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
