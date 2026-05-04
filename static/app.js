@@ -19,6 +19,9 @@ const formError = document.querySelector("#formError");
 const selectedBedTitle = document.querySelector("#selectedBedTitle");
 const selectedBedKicker = document.querySelector("#selectedBedKicker");
 const toast = document.querySelector("#toast");
+const bedTooltip = document.createElement("div");
+bedTooltip.className = "bed-tooltip";
+document.body.append(bedTooltip);
 
 const floors = window.FLOORS;
 
@@ -98,11 +101,11 @@ function renderFloor() {
     button.type = "button";
     button.className = `bed ${bed.orientation} ${isBusy ? "busy" : "free"}`;
     button.dataset.bed = bed.id;
-    button.disabled = isBusy;
-    button.setAttribute("aria-label", isBusy ? `${bed.label} занято` : `${bed.label} свободно`);
     if (bed.note) {
-      button.title = bed.note;
+      button.dataset.note = bed.note;
     }
+    button.setAttribute("aria-disabled", isBusy ? "true" : "false");
+    button.setAttribute("aria-label", isBusy ? `${bed.label} занято` : `${bed.label} свободно`);
     place(button, bed);
 
     const booking = state.bookings.get(bed.id);
@@ -112,9 +115,11 @@ function renderFloor() {
       <span class="blanket"></span>
       <span class="pillow"></span>
       <span class="bed-label">${isBusy ? escapeHtml(booking.name) : bed.label}</span>
-      ${bed.note ? `<span class="bed-note">${escapeHtml(bed.note)}</span>` : ""}
     `;
-    button.addEventListener("click", () => openBookingDialog(bed, floor));
+    button.addEventListener("click", () => {
+      if (state.bookings.has(bed.id)) return;
+      openBookingDialog(bed, floor);
+    });
     floorMap.append(button);
   }
 }
@@ -231,6 +236,43 @@ function showToast(message) {
   window.setTimeout(() => toast.classList.remove("visible"), 3600);
 }
 
+function showBedTooltip(target) {
+  const note = target.dataset.note;
+  if (!note) return;
+
+  bedTooltip.textContent = note;
+  bedTooltip.classList.add("visible");
+  moveBedTooltip(target);
+}
+
+function moveBedTooltip(target) {
+  if (!bedTooltip.classList.contains("visible")) return;
+
+  const rect = target.getBoundingClientRect();
+  const tooltipRect = bedTooltip.getBoundingClientRect();
+  const gap = 14;
+  const viewportPadding = 12;
+
+  let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+  let top = rect.top - tooltipRect.height - gap;
+
+  if (top < viewportPadding) {
+    top = rect.bottom + gap;
+    bedTooltip.classList.add("below");
+  } else {
+    bedTooltip.classList.remove("below");
+  }
+
+  left = Math.max(viewportPadding, Math.min(left, window.innerWidth - tooltipRect.width - viewportPadding));
+
+  bedTooltip.style.left = `${left}px`;
+  bedTooltip.style.top = `${top}px`;
+}
+
+function hideBedTooltip() {
+  bedTooltip.classList.remove("visible", "below");
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -257,6 +299,36 @@ bookingList.addEventListener("click", (event) => {
   if (!button) return;
   checkoutBed(button.dataset.checkout);
 });
+function handleBedTooltipEnter(event) {
+  const bed = event.target.closest(".bed[data-note]");
+  if (!bed || !floorMap.contains(bed)) return;
+  showBedTooltip(bed);
+}
+
+function handleBedTooltipMove(event) {
+  const bed = event.target.closest(".bed[data-note]");
+  if (!bed || !floorMap.contains(bed)) return;
+  moveBedTooltip(bed);
+}
+
+function handleBedTooltipLeave(event) {
+  const bed = event.target.closest(".bed[data-note]");
+  if (!bed || bed.contains(event.relatedTarget)) return;
+  hideBedTooltip();
+}
+
+floorMap.addEventListener("pointerover", handleBedTooltipEnter);
+floorMap.addEventListener("pointermove", handleBedTooltipMove);
+floorMap.addEventListener("pointerout", handleBedTooltipLeave);
+floorMap.addEventListener("mouseover", handleBedTooltipEnter);
+floorMap.addEventListener("mousemove", handleBedTooltipMove);
+floorMap.addEventListener("mouseout", handleBedTooltipLeave);
+floorMap.addEventListener("focusin", (event) => {
+  const bed = event.target.closest(".bed[data-note]");
+  if (!bed) return;
+  showBedTooltip(bed);
+});
+floorMap.addEventListener("focusout", hideBedTooltip);
 form.addEventListener("submit", submitBooking);
 
 loadBookings().catch(() => {
