@@ -3,6 +3,7 @@ const state = {
   floorId: "house-1",
   bookings: new Map(),
   selectedBed: null,
+  tooltipBedId: null,
 };
 
 const floorTabs = document.querySelector("#floorTabs");
@@ -116,7 +117,13 @@ function renderFloor() {
       <span class="pillow"></span>
       <span class="bed-label">${isBusy ? escapeHtml(booking.name) : bed.label}</span>
     `;
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      if (shouldUseTapTooltip() && bed.note && state.tooltipBedId !== bed.id) {
+        event.preventDefault();
+        showBedTooltip(button);
+        return;
+      }
+
       if (state.bookings.has(bed.id)) return;
       openBookingDialog(bed, floor);
     });
@@ -240,6 +247,7 @@ function showBedTooltip(target) {
   const note = target.dataset.note;
   if (!note) return;
 
+  state.tooltipBedId = target.dataset.bed;
   bedTooltip.textContent = note;
   bedTooltip.classList.add("visible");
   moveBedTooltip(target);
@@ -270,7 +278,12 @@ function moveBedTooltip(target) {
 }
 
 function hideBedTooltip() {
+  state.tooltipBedId = null;
   bedTooltip.classList.remove("visible", "below");
+}
+
+function shouldUseTapTooltip() {
+  return window.matchMedia("(hover: none), (pointer: coarse)").matches;
 }
 
 function escapeHtml(value) {
@@ -294,6 +307,11 @@ document.querySelectorAll("[data-building]").forEach((button) => {
 
 document.querySelector("#refreshButton").addEventListener("click", loadBookings);
 document.querySelector("#closeDialog").addEventListener("click", () => dialog.close());
+document.addEventListener("click", (event) => {
+  if (!shouldUseTapTooltip()) return;
+  if (event.target.closest(".bed[data-note]") || event.target.closest(".bed-tooltip")) return;
+  hideBedTooltip();
+});
 bookingList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-checkout]");
   if (!button) return;
